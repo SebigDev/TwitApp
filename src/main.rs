@@ -20,6 +20,8 @@ async fn main() -> io::Result<()> {
             .app_data(dbconn::establish_connection())
             .wrap(middleware::Logger::default())
             .service(tweet::get)
+            .service(tweet::list)
+            .service(tweet::delete)
             .service(tweet::create)
             .service(like::plus_one)
             .service(like::minus_one)
