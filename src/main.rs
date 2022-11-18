@@ -1,31 +1,38 @@
 extern crate actix_web;
-extern crate diesel;
 extern crate log;
 
-use actix_web::{middleware, App, HttpServer};
+use actix_web::{ middleware, web::Data, App, HttpServer};
+use dbconn::MongoPool;
+use model::{like_model::Like, tweet_model::Tweet};
+use repo::{like_repo::LikeRepo, tweet_repo::TweetRepo};
+use routes::router;
+
 use std::{env, io};
+mod api;
 mod dbconn;
-mod like;
-mod response;
-mod schema;
-mod tweet;
+mod dtos;
+mod model;
+mod repo;
+mod routes;
+
 
 #[actix_rt::main]
 async fn main() -> io::Result<()> {
     env::set_var("RUST_LOG", "actix_web=debug,actix_server=info");
     env_logger::init();
 
+     let db = MongoPool::<Like>::connect().await;
+     let pool = Data::new(LikeRepo { collection: db.collection });
+
+     let db1 = MongoPool::<Tweet>::connect().await;
+     let pool1 = Data::new(TweetRepo{ collection: db1.collection });
+
     HttpServer::new(move || {
         App::new()
-            .app_data(dbconn::establish_connection())
             .wrap(middleware::Logger::default())
-            .service(tweet::get)
-            .service(tweet::list)
-            .service(tweet::delete)
-            .service(tweet::create)
-            .service(like::plus_one)
-            .service(like::minus_one)
-            .service(like::list)
+            .app_data(pool.clone())
+            .app_data(pool1.clone())
+            .configure(router::init)
     })
     .bind("127.0.0.1:8080")
     .expect("Address not found")
