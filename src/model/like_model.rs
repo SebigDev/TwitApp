@@ -20,4 +20,11 @@ impl Like {
             tweet_id: self.tweet_id.unwrap().to_hex(),
         }
     }
+    pub fn new(tweet_id: &str) -> Self {
+        Self {
+            id: Some(ObjectId::new()),
+            created_at: Utc::now(),
+            tweet_id: Some(ObjectId::parse_str(tweet_id).unwrap()),
+        }
+    }
 }

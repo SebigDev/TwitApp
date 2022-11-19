@@ -857,6 +857,7 @@ checksum = "99d76085681585d39016f4d3841eb019201fc54d2dd0d92ad1e4fab3bfb32754"
 dependencies = [
  "ahash",
  "base64 0.13.1",
+ "chrono",
  "hex",
  "indexmap",
  "lazy_static",
@@ -3029,6 +3030,7 @@ dependencies = [
  "actix-cors",
  "actix-rt 2.7.0",
  "actix-web 4.2.1",
+ "bson",
  "chrono",
  "dotenv",
  "env_logger",

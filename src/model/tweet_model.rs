@@ -1,7 +1,8 @@
-use chrono::{DateTime, Utc};
-use mongodb::bson::oid::ObjectId;
-use serde::{Deserialize, Serialize};
 use crate::dtos::dto::TweetDto;
+use crate::model::like_model::Like;
+use chrono::{DateTime, Utc};
+use mongodb::bson::{doc, oid::ObjectId};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Tweet {
@@ -9,7 +10,7 @@ pub struct Tweet {
     pub id: Option<ObjectId>,
     pub created_at: DateTime<Utc>,
     pub message: String,
-    pub likes: Vec<String>
+    pub likes: Vec<Like>,
 }
 
 impl Tweet {
@@ -18,7 +19,7 @@ impl Tweet {
             id: None,
             created_at: Utc::now(),
             message: message.to_string(),
-            likes : vec![],
+            likes: vec![],
         }
     }
 
@@ -27,13 +28,17 @@ impl Tweet {
             id: self.id.unwrap().to_hex(),
             created_at: self.created_at,
             message: self.message.clone(),
-            likes: self.likes.clone(),
+            likes: self.likes.clone().into_iter().map(| l| l.map()).collect(),
         }
+    }
+    pub fn add_like(&mut self, like: Like) {
+        println!("like {:?}", like);
+        self.likes.push(like);
     }
 }
 
 pub trait TweetActions {
-   fn tweet(&self) -> Option<Tweet>;
+    fn tweet(&self) -> Option<Tweet>;
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -42,11 +47,10 @@ pub struct TweetRequest {
 }
 
 impl TweetActions for TweetRequest {
-     fn tweet(&self) -> Option<Tweet> {
+    fn tweet(&self) -> Option<Tweet> {
         match &self.message {
             Some(message) => Some(Tweet::new(message)),
             None => None,
         }
     }
 }
-
