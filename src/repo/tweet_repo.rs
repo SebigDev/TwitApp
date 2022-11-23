@@ -74,11 +74,27 @@ impl TweetRepo<Tweet> {
         Ok(_tweet)
     }
 
+   
     pub async fn create_like(&self, tweet_id: &str) -> Result<TweetDto, Error> {
         let _id = ObjectId::parse_str(tweet_id).expect("Invalid tweet Id provided");
         let tweet_dto = self.get_tweet(tweet_id).await.unwrap();
         let mut tweet = tweet_dto.to_tweet();
         tweet.add_like(Like::new(tweet_id));
+        let query = doc! {"_id": _id };
+        let _like = self
+            .collection
+            .update_one(query, update_tweet_document(&tweet), None)
+            .await
+            .ok()
+            .expect("Error creating like");
+        Ok(tweet.map())
+    }
+
+    pub async fn remove_like(&self, tweet_id: &str, id: &str) -> Result<TweetDto, Error> {
+        let _id = ObjectId::parse_str(tweet_id).expect("Invalid tweet Id provided");
+        let tweet_dto = self.get_tweet(tweet_id).await.unwrap();
+        let mut tweet = tweet_dto.to_tweet();
+        tweet.remove_like(id);
         let query = doc! {"_id": _id };
         let _like = self
             .collection

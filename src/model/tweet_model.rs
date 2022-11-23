@@ -28,13 +28,18 @@ impl Tweet {
             id: self.id.unwrap().to_hex(),
             created_at: self.created_at,
             message: self.message.clone(),
-            likes: self.likes.clone().into_iter().map(| l| l.map()).collect(),
+            likes: self.likes.clone().into_iter().map(|l| l.map()).collect(),
         }
     }
     pub fn add_like(&mut self, like: Like) {
-        println!("like {:?}", like);
         self.likes.push(like);
     }
+
+    pub fn remove_like(&mut self, id: &str) {
+        let _id = ObjectId::parse_str(id).unwrap();
+        self.likes.retain(|a| !a.id.unwrap().to_hex().eq(&_id.to_hex()));
+    }
+    
 }
 
 pub trait TweetActions {
