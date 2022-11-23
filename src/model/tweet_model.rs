@@ -1,5 +1,6 @@
 use crate::dtos::dto::TweetDto;
 use crate::model::like_model::Like;
+use crate::model::tweet_comment::Comment;
 use chrono::{DateTime, Utc};
 use mongodb::bson::{doc, oid::ObjectId};
 use serde::{Deserialize, Serialize};
@@ -11,6 +12,7 @@ pub struct Tweet {
     pub created_at: DateTime<Utc>,
     pub message: String,
     pub likes: Vec<Like>,
+    pub comments: Vec<Comment>,
 }
 
 impl Tweet {
@@ -20,6 +22,7 @@ impl Tweet {
             created_at: Utc::now(),
             message: message.to_string(),
             likes: vec![],
+            comments: vec![],
         }
     }
 
@@ -29,6 +32,7 @@ impl Tweet {
             created_at: self.created_at,
             message: self.message.clone(),
             likes: self.likes.clone().into_iter().map(|l| l.map()).collect(),
+            comments: self.comments.clone().into_iter().map(|c| c.map()).collect(),
         }
     }
     pub fn add_like(&mut self, like: Like) {
@@ -37,9 +41,13 @@ impl Tweet {
 
     pub fn remove_like(&mut self, id: &str) {
         let _id = ObjectId::parse_str(id).unwrap();
-        self.likes.retain(|a| !a.id.unwrap().to_hex().eq(&_id.to_hex()));
+        self.likes
+            .retain(|a| !a.id.unwrap().to_hex().eq(&_id.to_hex()));
     }
-    
+
+    pub fn add_comment(&mut self, comment: Comment) {
+        self.comments.push(comment)
+    }
 }
 
 pub trait TweetActions {

@@ -7,6 +7,7 @@ use mongodb::Collection;
 use crate::dtos::dto::TweetDto;
 use crate::model::docs::update_tweet_document;
 use crate::model::like_model::Like;
+use crate::model::tweet_comment::Comment;
 use crate::model::tweet_model::Tweet;
 
 pub struct TweetRepo<Tweet> {
@@ -23,11 +24,7 @@ impl TweetRepo<Tweet> {
             .expect("Error creating like");
 
         let id_option = _tweet.inserted_id.as_str();
-        let id = match id_option {
-            Some(id) => id,
-            None => "",
-        };
-        let dto = self.get_tweet(id).await.unwrap();
+        let dto = self.get_tweet(id_option.unwrap_or_default()).await.unwrap();
         Ok(dto)
     }
 
@@ -50,7 +47,7 @@ impl TweetRepo<Tweet> {
     }
 
     pub async fn get_tweet(&self, id: &str) -> Result<TweetDto, Error> {
-        let _id = ObjectId::parse_str(id).expect("Invalid like Id provided");
+        let _id = ObjectId::parse_str(id).expect("Invalid tweet Id provided");
         let filter = doc! {"_id": _id};
         let _tweet = self
             .collection
@@ -74,7 +71,6 @@ impl TweetRepo<Tweet> {
         Ok(_tweet)
     }
 
-   
     pub async fn create_like(&self, tweet_id: &str) -> Result<TweetDto, Error> {
         let _id = ObjectId::parse_str(tweet_id).expect("Invalid tweet Id provided");
         let tweet_dto = self.get_tweet(tweet_id).await.unwrap();
@@ -95,6 +91,7 @@ impl TweetRepo<Tweet> {
         let tweet_dto = self.get_tweet(tweet_id).await.unwrap();
         let mut tweet = tweet_dto.to_tweet();
         tweet.remove_like(id);
+
         let query = doc! {"_id": _id };
         let _like = self
             .collection
@@ -102,6 +99,22 @@ impl TweetRepo<Tweet> {
             .await
             .ok()
             .expect("Error creating like");
+        Ok(tweet.map())
+    }
+
+    pub async fn add_comment(&self, tweet_id: &str, message: &str) -> Result<TweetDto, Error> {
+        let _id = ObjectId::parse_str(tweet_id).expect("Invalid tweet Id provided");
+        let tweet_dto = self.get_tweet(tweet_id).await.unwrap();
+        let mut tweet = tweet_dto.to_tweet();
+        tweet.add_comment(Comment::new(tweet_id, message));
+
+        let query = doc! {"_id": _id };
+        let _like = self
+            .collection
+            .update_one(query, update_tweet_document(&tweet), None)
+            .await
+            .ok()
+            .expect("Error adding comment");
         Ok(tweet.map())
     }
 }

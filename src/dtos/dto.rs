@@ -1,4 +1,4 @@
-use crate::model::{like_model::Like, tweet_model::Tweet};
+use crate::model::{like_model::Like, tweet_model::Tweet, tweet_comment::Comment};
 use chrono::{DateTime, Utc};
 use mongodb::bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
@@ -15,7 +15,17 @@ pub struct TweetDto {
     pub id: String,
     pub created_at: DateTime<Utc>,
     pub message: String,
-    pub likes: Vec<LikeDto>
+    pub likes: Vec<LikeDto>,
+    pub comments: Vec<CommentDto>
+}
+
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CommentDto {
+    pub id: String,
+    pub created_at: DateTime<Utc>,
+    pub message: String,
+    pub tweet_id: String,
 }
 
 impl TweetDto {
@@ -25,6 +35,7 @@ impl TweetDto {
             message: self.message.to_owned(),
             created_at: self.created_at,
             likes: self.likes.into_iter().map(|l| l.to_like()).collect(),
+            comments: self.comments.into_iter().map(|c| c.to_comment()).collect(),
         }
     }
 }
@@ -34,6 +45,17 @@ impl LikeDto {
         Like {
             id: Some(ObjectId::parse_str(&self.id).unwrap()),
             created_at: self.created_at,
+            tweet_id: Some(ObjectId::parse_str(&self.tweet_id).unwrap()),
+        }
+    }
+}
+
+impl CommentDto{
+    pub fn to_comment(&self) -> Comment{
+        Comment {
+            id: Some(ObjectId::parse_str(&self.id).unwrap()),
+            created_at: self.created_at,
+            message: self.message.clone(),
             tweet_id: Some(ObjectId::parse_str(&self.tweet_id).unwrap()),
         }
     }

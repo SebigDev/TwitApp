@@ -34,7 +34,7 @@ pub async fn minus_one(db: Data<TweetRepo<Tweet>>, path: Path<(String, String,)>
     let result = db.remove_like(tweet_id, like_id).await;
 
     match result {
-        Ok(resp) => HttpResponse::Created().json(resp),
+        Ok(resp) => HttpResponse::Ok().json(resp),
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
     }
 }
