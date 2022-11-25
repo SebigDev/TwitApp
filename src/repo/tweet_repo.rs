@@ -98,7 +98,7 @@ impl TweetRepo<Tweet> {
             .update_one(query, update_tweet_document(&tweet), None)
             .await
             .ok()
-            .expect("Error creating like");
+            .expect("Error removing like");
         Ok(tweet.map())
     }
 
@@ -115,6 +115,22 @@ impl TweetRepo<Tweet> {
             .await
             .ok()
             .expect("Error adding comment");
+        Ok(tweet.map())
+    }
+
+    pub async fn remove_comment(&self, tweet_id: &str, comment_id: &str) -> Result<TweetDto, Error> {
+        let _id = ObjectId::parse_str(tweet_id).expect("Invalid tweet Id provided");
+        let tweet_dto = self.get_tweet(tweet_id).await.unwrap();
+        let mut tweet = tweet_dto.to_tweet();
+        tweet.remove_comment(comment_id);
+
+        let query = doc! {"_id": _id };
+        let _like = self
+            .collection
+            .update_one(query, update_tweet_document(&tweet), None)
+            .await
+            .ok()
+            .expect("Error removing comment");
         Ok(tweet.map())
     }
 }

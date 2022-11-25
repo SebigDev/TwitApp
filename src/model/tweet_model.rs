@@ -40,13 +40,19 @@ impl Tweet {
     }
 
     pub fn remove_like(&mut self, id: &str) {
-        let _id = ObjectId::parse_str(id).unwrap();
+        let _id = ObjectId::parse_str(id).expect("Invalid like id provided");
         self.likes
             .retain(|a| !a.id.unwrap().to_hex().eq(&_id.to_hex()));
     }
 
     pub fn add_comment(&mut self, comment: Comment) {
         self.comments.push(comment)
+    }
+
+    pub fn remove_comment(&mut self, comment_id: &str) {
+        let _id = ObjectId::parse_str(comment_id).expect("Invalid comment id provided");
+        self.comments
+            .retain(|c| !c.id.unwrap().to_hex().eq(&_id.to_hex()));
     }
 }
 

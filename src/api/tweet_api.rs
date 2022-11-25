@@ -77,3 +77,19 @@ pub async fn add_comment(db: Data<TweetRepo<Tweet>>, path: Path<(String,)>, requ
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
     }
 }
+
+#[delete("/api/v1/tweets/{tweet_id}/comment/{comment_id}")]
+pub async fn delete_comment(db: Data<TweetRepo<Tweet>>, path: Path<(String,String,)>) -> impl Responder {
+    let tweet_id = path.0.as_str();
+    let comment_id = path.1.as_str();
+    if tweet_id.is_empty() || comment_id.is_empty() {
+        return HttpResponse::BadRequest().body(format!("Id not provided").to_string());
+    }
+    let result = db.remove_comment(tweet_id, comment_id).await;
+
+    match result {
+        Ok(resp) => HttpResponse::Ok().json(resp),
+        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+    }
+}
+
