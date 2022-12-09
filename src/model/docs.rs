@@ -2,7 +2,7 @@ use crate::model::tweet_model::Tweet;
 use mongodb::bson::{self, doc, Document};
 
 pub fn update_tweet_document(tweet: &Tweet) -> Document {
-    let _doc = doc! {
+    let document = doc! {
          "$set":{
             "_id": bson::Bson::ObjectId(tweet.id.unwrap()),
             "message": bson::Bson::String(tweet.message.clone()),
@@ -11,5 +11,5 @@ pub fn update_tweet_document(tweet: &Tweet) -> Document {
             "comments": bson::to_bson(&tweet.comments).unwrap()
          }
     };
-    _doc
+    document
 }

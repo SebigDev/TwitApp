@@ -1,4 +1,4 @@
-use crate::model::{like_model::Like, tweet_model::Tweet, tweet_comment::Comment};
+use crate::model::{like_model::Like, tweet_comment::Comment, tweet_model::Tweet};
 use chrono::{DateTime, Utc};
 use mongodb::bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
@@ -16,9 +16,8 @@ pub struct TweetDto {
     pub created_at: DateTime<Utc>,
     pub message: String,
     pub likes: Vec<LikeDto>,
-    pub comments: Vec<CommentDto>
+    pub comments: Vec<CommentDto>,
 }
-
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CommentDto {
@@ -26,6 +25,12 @@ pub struct CommentDto {
     pub created_at: DateTime<Utc>,
     pub message: String,
     pub tweet_id: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct UserDto {
+    pub id: String,
+    pub message: String,
 }
 
 impl TweetDto {
@@ -50,8 +55,8 @@ impl LikeDto {
     }
 }
 
-impl CommentDto{
-    pub fn to_comment(&self) -> Comment{
+impl CommentDto {
+    pub fn to_comment(&self) -> Comment {
         Comment {
             id: Some(ObjectId::parse_str(&self.id).unwrap()),
             created_at: self.created_at,

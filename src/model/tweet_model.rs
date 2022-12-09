@@ -1,6 +1,5 @@
 use crate::dtos::dto::TweetDto;
-use crate::model::like_model::Like;
-use crate::model::tweet_comment::Comment;
+use crate::model::{like_model::Like, tweet_comment::Comment};
 use chrono::{DateTime, Utc};
 use mongodb::bson::{doc, oid::ObjectId};
 use serde::{Deserialize, Serialize};
@@ -35,6 +34,7 @@ impl Tweet {
             comments: self.comments.clone().into_iter().map(|c| c.map()).collect(),
         }
     }
+
     pub fn add_like(&mut self, like: Like) {
         self.likes.push(like);
     }

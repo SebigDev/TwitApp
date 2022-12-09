@@ -1,31 +1,35 @@
-use mongodb::bson::doc;
-use mongodb::bson::extjson::de::Error;
-use mongodb::bson::oid::ObjectId;
-use mongodb::results::DeleteResult;
-use mongodb::Collection;
+use mongodb::{
+    bson::{doc, extjson::de::Error, oid::ObjectId},
+    results::DeleteResult,
+    Collection,
+};
 
-use crate::dtos::dto::TweetDto;
-use crate::model::docs::update_tweet_document;
-use crate::model::like_model::Like;
-use crate::model::tweet_comment::Comment;
-use crate::model::tweet_model::Tweet;
+use crate::model::{
+    docs::update_tweet_document, like_model::Like, tweet_comment::Comment, tweet_model::Tweet,
+};
+use crate::{dtos::dto::TweetDto, errors::error::TweetError};
 
 pub struct TweetRepo<Tweet> {
     pub collection: Collection<Tweet>,
 }
 
 impl TweetRepo<Tweet> {
-    pub async fn create_tweet(&self, tweet: Tweet) -> Result<TweetDto, Error> {
+    pub async fn create_tweet(&self, tweet: Tweet) -> Result<TweetDto, TweetError> {
         let _tweet = self
             .collection
             .insert_one(tweet, None)
             .await
+            .map_err(|_| TweetError::InternalServerError)
             .ok()
-            .expect("Error creating like");
+            .unwrap();
 
-        let id_option = _tweet.inserted_id.as_str();
-        let dto = self.get_tweet(id_option.unwrap_or_default()).await.unwrap();
-        Ok(dto)
+        let id = match _tweet.inserted_id.as_object_id() {
+            Some(id) => id.to_hex(),
+            None => return Err(TweetError::BadRequest("Error reading inserted id".into())),
+        };
+
+        let dto = self.get_tweet(&id).await.unwrap();
+        return Ok(dto);
     }
 
     pub async fn all_tweets(&self) -> Result<Vec<TweetDto>, Error> {
@@ -118,7 +122,11 @@ impl TweetRepo<Tweet> {
         Ok(tweet.map())
     }
 
-    pub async fn remove_comment(&self, tweet_id: &str, comment_id: &str) -> Result<TweetDto, Error> {
+    pub async fn remove_comment(
+        &self,
+        tweet_id: &str,
+        comment_id: &str,
+    ) -> Result<TweetDto, Error> {
         let _id = ObjectId::parse_str(tweet_id).expect("Invalid tweet Id provided");
         let tweet_dto = self.get_tweet(tweet_id).await.unwrap();
         let mut tweet = tweet_dto.to_tweet();

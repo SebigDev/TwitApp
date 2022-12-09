@@ -1,16 +1,32 @@
 use actix_web::web;
+use actix_web_httpauth::middleware::HttpAuthentication;
 
-use crate::api::{
-    like_api::{minus_one, plus_one},
-    tweet_api::{add_comment, create_tweet, delete_comment, get_tweet, list_tweets},
+use crate::{
+    api::{
+        like_api::{minus_one, plus_one},
+        tweet_api::{
+            add_comment, create_tweet, delete_comment, delete_tweet, get_tweet, list_tweets,
+        },
+        user_api::{login, register, signout},
+    },
+    auths::auth_middleware::validator,
 };
 
 pub fn init(config: &mut web::ServiceConfig) {
-    config.service(create_tweet);
-    config.service(list_tweets);
-    config.service(get_tweet);
-    config.service(plus_one);
-    config.service(minus_one);
-    config.service(add_comment);
-    config.service(delete_comment);
+    let auth_middleware = HttpAuthentication::bearer(validator);
+    config.service(login);
+    config.service(register);
+    config.service(
+        web::scope("")
+            .wrap(auth_middleware)
+            .service(create_tweet)
+            .service(list_tweets)
+            .service(get_tweet)
+            .service(delete_tweet)
+            .service(plus_one)
+            .service(minus_one)
+            .service(add_comment)
+            .service(delete_comment)
+            .service(signout),
+    );
 }
