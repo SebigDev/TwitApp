@@ -1,10 +1,12 @@
 use actix_web::{
     delete, get, post,
-    web::{Data, Json, Path},
+    web::{Data, Json, Path, ReqData},
     HttpResponse, Responder,
 };
+use jwt::RegisteredClaims;
 
 use crate::{
+    auths::utils::get_user_id,
     model::{
         tweet_comment::{CommentAction, CommentRequest},
         tweet_model::{Tweet, TweetActions, TweetRequest},
@@ -15,9 +17,14 @@ use crate::{
 #[post("/api/v1/tweets")]
 pub async fn create_tweet(
     request: Json<TweetRequest>,
+    claims: Option<ReqData<RegisteredClaims>>,
     db: Data<TweetRepo<Tweet>>,
 ) -> impl Responder {
-    let tweet = request.0.tweet().unwrap();
+    let user_id = match get_user_id(claims) {
+        Ok(id) => id,
+        Err(err) => return HttpResponse::Unauthorized().body(err.to_string()),
+    };
+    let tweet = request.0.tweet(user_id).unwrap();
     let result = db.create_tweet(tweet).await;
 
     match result {
@@ -27,8 +34,15 @@ pub async fn create_tweet(
 }
 
 #[get("/api/v1/tweets")]
-pub async fn list_tweets(db: Data<TweetRepo<Tweet>>) -> impl Responder {
-    let result = db.all_tweets().await;
+pub async fn list_tweets(
+    db: Data<TweetRepo<Tweet>>,
+    claims: Option<ReqData<RegisteredClaims>>,
+) -> impl Responder {
+    let user_id = match get_user_id(claims) {
+        Ok(id) => id,
+        Err(err) => return HttpResponse::Unauthorized().body(err.to_string()),
+    };
+    let result = db.all_tweets(&user_id).await;
 
     match result {
         Ok(resp) => HttpResponse::Ok().json(resp),
@@ -52,7 +66,6 @@ pub async fn get_tweet(db: Data<TweetRepo<Tweet>>, path: Path<(String,)>) -> imp
 
 #[delete("/api/v1/tweets/{path}")]
 pub async fn delete_tweet(db: Data<TweetRepo<Tweet>>, path: Path<(String,)>) -> impl Responder {
-    println!("Path {}", path.0.as_str());
     let id = path.0.as_str();
     if id.is_empty() {
         return HttpResponse::BadRequest().body(format!("Id not provided").to_string());
@@ -66,7 +79,10 @@ pub async fn delete_tweet(db: Data<TweetRepo<Tweet>>, path: Path<(String,)>) -> 
 }
 
 #[post("/api/v1/tweets/{path}/comment")]
-pub async fn add_comment(db: Data<TweetRepo<Tweet>>, path: Path<(String,)>, request: Json<CommentRequest>,
+pub async fn add_comment(
+    db: Data<TweetRepo<Tweet>>,
+    path: Path<(String,)>,
+    request: Json<CommentRequest>,
 ) -> impl Responder {
     let tweet_id = path.0.as_str();
     let comment = request.0.comment(tweet_id).unwrap();
@@ -79,7 +95,10 @@ pub async fn add_comment(db: Data<TweetRepo<Tweet>>, path: Path<(String,)>, requ
 }
 
 #[delete("/api/v1/tweets/{tweet_id}/comment/{comment_id}")]
-pub async fn delete_comment(db: Data<TweetRepo<Tweet>>, path: Path<(String,String,)>) -> impl Responder {
+pub async fn delete_comment(
+    db: Data<TweetRepo<Tweet>>,
+    path: Path<(String, String)>,
+) -> impl Responder {
     let tweet_id = path.0.as_str();
     let comment_id = path.1.as_str();
     if tweet_id.is_empty() || comment_id.is_empty() {
@@ -92,4 +111,3 @@ pub async fn delete_comment(db: Data<TweetRepo<Tweet>>, path: Path<(String,Strin
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
     }
 }
-

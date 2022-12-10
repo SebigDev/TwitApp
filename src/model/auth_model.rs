@@ -1,10 +1,12 @@
+use std::time::{self, Duration, SystemTime};
+
 use argonautica::{Hasher, Verifier};
 use bson::oid::ObjectId;
 use chrono::{DateTime, Utc};
-use jwt::SignWithKey;
+use jwt::{claims::RegisteredClaims, header::HeaderType, Header, SignWithKey, Token};
 use serde::{Deserialize, Serialize};
 
-use crate::auths::{auth::TokenClaim, utils::get_jwt_key};
+use crate::auths::utils::get_jwt_key;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct User {
@@ -25,7 +27,7 @@ impl User {
         }
     }
 
-    pub fn hash_password(password: &str) -> String {
+    fn hash_password(password: &str) -> String {
         let secret = std::env::var("SECRET_KEY").expect("SECRET_KEY not provided");
         let mut hasher = Hasher::default();
         let hash = hasher
@@ -36,7 +38,7 @@ impl User {
         hash
     }
 
-    pub fn generate_token(&self, password: &str) -> String {
+    pub fn generate_token(&self, password: &str) -> Option<String> {
         let secret = std::env::var("SECRET_KEY").expect("SECRET_KEY not provided");
         let key = get_jwt_key();
         let mut verifier = Verifier::default();
@@ -47,14 +49,37 @@ impl User {
             .verify()
             .unwrap();
         if verify {
-            let claims = TokenClaim {
-                id: self.id.unwrap().to_hex(),
-                email: self.email.clone(),
+            let headers = Header {
+                type_: Some(HeaderType::JsonWebToken),
+                algorithm: jwt::AlgorithmType::Hs256,
+                ..Default::default()
             };
-            let token_string = claims.sign_with_key(&key).unwrap();
-            token_string
+
+            let claims = RegisteredClaims {
+                issuer: Some("TwitApp".to_string()),
+                subject: Some("https://twitapp.com".to_string()),
+                json_web_token_id: Some(self.id.unwrap().to_hex()),
+                expiration: Some(
+                    SystemTime::now()
+                        .checked_add(Duration::from_secs(86400))
+                        .unwrap()
+                        .duration_since(time::UNIX_EPOCH)
+                        .unwrap()
+                        .as_secs(),
+                ),
+                issued_at: Some(
+                    SystemTime::now()
+                        .duration_since(time::UNIX_EPOCH)
+                        .unwrap()
+                        .as_secs(),
+                ),
+                ..Default::default()
+            };
+
+            let token = Token::new(headers, claims).sign_with_key(&key).unwrap();
+            Some(String::from(token.as_str()))
         } else {
-            String::new()
+            None
         }
     }
 }

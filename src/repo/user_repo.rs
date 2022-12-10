@@ -34,17 +34,24 @@ impl UserRepo<User> {
             .collection
             .find(filter, None)
             .await
-            .map_err(|_| TweetError::InternalServerError)
-            .ok()
-            .expect("Error fetching user");
-        let _user = match user_result.deserialize_current() {
-            Ok(user) => user,
-            Err(_) => return Err(TweetError::Unauthorized("".into())),
+            .map_err(|_| TweetError::InternalServerError);
+            
+        match user_result {
+            Ok(user) => {
+                let _user = match user.deserialize_current() {
+                    Ok(user) => user,
+                    Err(_) => {
+                        return Err(TweetError::Unauthorized("User data is not valid".into()))
+                    }
+                };
+                let token_option = _user.generate_token(&auth.password);
+                let token = match token_option {
+                    Some(_token) => _token,
+                    None => return Err(TweetError::Unauthorized("authentication failed".into())),
+                };
+                return Ok(token);
+            }
+            Err(_) => return Err(TweetError::Unauthorized("User does not exist".into())),
         };
-        let token = _user.generate_token(&auth.password);
-        if token.is_empty() {
-            return Err(TweetError::Unauthorized("authentication failed".into()));
-        }
-        return Ok(token);
     }
 }

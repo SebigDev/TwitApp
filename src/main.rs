@@ -38,8 +38,7 @@ async fn main() -> io::Result<()> {
             .app_data(pool.clone())
             .configure(router::init)
     })
-    .bind(("127.0.0.1", 8080))
-    .expect("Address not found")
+    .bind(("127.0.0.1", 8080))?
     .run()
     .await
 }

@@ -1,10 +1,5 @@
-use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct TokenClaim {
-    pub id: String,
-    pub email: String,
-}
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct AuthData {

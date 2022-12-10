@@ -32,10 +32,12 @@ impl TweetRepo<Tweet> {
         return Ok(dto);
     }
 
-    pub async fn all_tweets(&self) -> Result<Vec<TweetDto>, Error> {
+    pub async fn all_tweets(&self, _user_id: &str) -> Result<Vec<TweetDto>, Error> {
+        let user_id = ObjectId::parse_str(_user_id).expect("Invalid user_id");
+        let filter = doc! {"user_id": user_id};
         let mut _tweets = self
             .collection
-            .find(None, None)
+            .find(filter, None)
             .await
             .ok()
             .expect("Failed to retrieve all likes");

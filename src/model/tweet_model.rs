@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 pub struct Tweet {
     #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
     pub id: Option<ObjectId>,
+    pub user_id: Option<ObjectId>,
     pub created_at: DateTime<Utc>,
     pub message: String,
     pub likes: Vec<Like>,
@@ -15,9 +16,10 @@ pub struct Tweet {
 }
 
 impl Tweet {
-    pub fn new(message: &str) -> Tweet {
+    pub fn new(message: &str, user_id: &str) -> Tweet {
         Tweet {
             id: None,
+            user_id: Some(ObjectId::parse_str(&user_id).unwrap()),
             created_at: Utc::now(),
             message: message.to_string(),
             likes: vec![],
@@ -28,6 +30,7 @@ impl Tweet {
     pub fn map(&self) -> TweetDto {
         TweetDto {
             id: self.id.unwrap().to_hex(),
+            user_id: self.user_id.unwrap().to_hex(),
             created_at: self.created_at,
             message: self.message.clone(),
             likes: self.likes.clone().into_iter().map(|l| l.map()).collect(),
@@ -57,7 +60,7 @@ impl Tweet {
 }
 
 pub trait TweetActions {
-    fn tweet(&self) -> Option<Tweet>;
+    fn tweet(&self, user_id: String) -> Option<Tweet>;
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -66,9 +69,9 @@ pub struct TweetRequest {
 }
 
 impl TweetActions for TweetRequest {
-    fn tweet(&self) -> Option<Tweet> {
+    fn tweet(&self, user_id: String) -> Option<Tweet> {
         match &self.message {
-            Some(message) => Some(Tweet::new(message)),
+            Some(message) => Some(Tweet::new(message, &user_id)),
             None => None,
         }
     }

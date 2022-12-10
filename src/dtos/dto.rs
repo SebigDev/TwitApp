@@ -13,6 +13,7 @@ pub struct LikeDto {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TweetDto {
     pub id: String,
+    pub user_id: String,
     pub created_at: DateTime<Utc>,
     pub message: String,
     pub likes: Vec<LikeDto>,
@@ -37,6 +38,7 @@ impl TweetDto {
     pub fn to_tweet(self) -> Tweet {
         Tweet {
             id: Some(ObjectId::parse_str(&self.id).unwrap()),
+            user_id: Some(ObjectId::parse_str(&self.id).unwrap()),
             message: self.message.to_owned(),
             created_at: self.created_at,
             likes: self.likes.into_iter().map(|l| l.to_like()).collect(),
