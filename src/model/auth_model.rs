@@ -26,7 +26,7 @@ impl User {
             password: Self::hash_password(password),
         }
     }
-
+    /// Hashes the password with Hasher
     fn hash_password(password: &str) -> String {
         let secret = std::env::var("SECRET_KEY").expect("SECRET_KEY not provided");
         let mut hasher = Hasher::default();
@@ -38,6 +38,7 @@ impl User {
         hash
     }
 
+    /// Generates token string using the provided claims.
     pub fn generate_token(&self, password: &str) -> Option<String> {
         let secret = std::env::var("SECRET_KEY").expect("SECRET_KEY not provided");
         let key = get_jwt_key();

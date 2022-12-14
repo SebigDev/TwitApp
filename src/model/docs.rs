@@ -1,6 +1,7 @@
 use crate::model::tweet_model::Tweet;
 use mongodb::bson::{self, doc, Document};
 
+/// Updates `Tweet` document in `MongoDb`
 pub fn update_tweet_document(tweet: &Tweet) -> Document {
     let document = doc! {
          "$set":{

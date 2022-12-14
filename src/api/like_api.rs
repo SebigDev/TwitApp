@@ -7,7 +7,7 @@ use actix_web::{
 
 use crate::{model::tweet_model::Tweet, repo::tweet_repo::TweetRepo};
 
-#[post("/api/v1/likes/{tweet_id}")]
+#[post("/likes/{tweet_id}")]
 pub async fn plus_one(db: Data<TweetRepo<Tweet>>, tweet_id: Path<(String,)>) -> impl Responder {
     let id = tweet_id.0.as_str();
     if id.is_empty() {
@@ -21,7 +21,7 @@ pub async fn plus_one(db: Data<TweetRepo<Tweet>>, tweet_id: Path<(String,)>) -> 
     }
 }
 
-#[delete("/api/v1/likes/{tweet_id}/{like_id}")]
+#[delete("/likes/{tweet_id}/{like_id}")]
 pub async fn minus_one(db: Data<TweetRepo<Tweet>>, path: Path<(String, String,)>) -> impl Responder {
     let tweet_id = path.0.as_str();
     let like_id = path.1.as_str();

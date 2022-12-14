@@ -26,7 +26,7 @@ impl Tweet {
             comments: vec![],
         }
     }
-
+    /// Transforms <b>Tweet</b> to <b>TweetDto</b> using mapping.
     pub fn map(&self) -> TweetDto {
         TweetDto {
             id: self.id.unwrap().to_hex(),
@@ -38,20 +38,24 @@ impl Tweet {
         }
     }
 
+    /// Adds like to a tweet
     pub fn add_like(&mut self, like: Like) {
         self.likes.push(like);
     }
 
+    ///Removes like from a tweet
     pub fn remove_like(&mut self, id: &str) {
         let _id = ObjectId::parse_str(id).expect("Invalid like id provided");
         self.likes
             .retain(|a| !a.id.unwrap().to_hex().eq(&_id.to_hex()));
     }
 
+    /// Adds comments to tweet
     pub fn add_comment(&mut self, comment: Comment) {
         self.comments.push(comment)
     }
 
+    /// Removes comments from a tweet
     pub fn remove_comment(&mut self, comment_id: &str) {
         let _id = ObjectId::parse_str(comment_id).expect("Invalid comment id provided");
         self.comments

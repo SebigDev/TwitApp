@@ -17,7 +17,7 @@ pub fn init(config: &mut web::ServiceConfig) {
     config.service(login);
     config.service(register);
     config.service(
-        web::scope("")
+        web::scope("/api/v1")
             .wrap(auth_middleware)
             .service(create_tweet)
             .service(list_tweets)

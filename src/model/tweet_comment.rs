@@ -21,6 +21,7 @@ impl Comment {
             tweet_id: Some(ObjectId::parse_str(&tweet_id).unwrap()),
         }
     }
+    /// Transforms <b>Comment</b> to <b>CommentDo</b> using mapping.
     pub fn map(&self) -> CommentDto {
         CommentDto {
             id: self.id.unwrap().to_hex(),

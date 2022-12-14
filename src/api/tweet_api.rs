@@ -14,7 +14,7 @@ use crate::{
     repo::tweet_repo::TweetRepo,
 };
 
-#[post("/api/v1/tweets")]
+#[post("/tweets")]
 pub async fn create_tweet(
     request: Json<TweetRequest>,
     claims: Option<ReqData<RegisteredClaims>>,
@@ -33,7 +33,7 @@ pub async fn create_tweet(
     }
 }
 
-#[get("/api/v1/tweets")]
+#[get("/tweets")]
 pub async fn list_tweets(
     db: Data<TweetRepo<Tweet>>,
     claims: Option<ReqData<RegisteredClaims>>,
@@ -50,7 +50,7 @@ pub async fn list_tweets(
     }
 }
 
-#[get("/api/v1/tweets/{path}")]
+#[get("/tweets/{path}")]
 pub async fn get_tweet(db: Data<TweetRepo<Tweet>>, path: Path<(String,)>) -> impl Responder {
     let id = path.0.as_str();
     if id.is_empty() {
@@ -64,7 +64,7 @@ pub async fn get_tweet(db: Data<TweetRepo<Tweet>>, path: Path<(String,)>) -> imp
     }
 }
 
-#[delete("/api/v1/tweets/{path}")]
+#[delete("/tweets/{path}")]
 pub async fn delete_tweet(db: Data<TweetRepo<Tweet>>, path: Path<(String,)>) -> impl Responder {
     let id = path.0.as_str();
     if id.is_empty() {
@@ -78,7 +78,7 @@ pub async fn delete_tweet(db: Data<TweetRepo<Tweet>>, path: Path<(String,)>) -> 
     }
 }
 
-#[post("/api/v1/tweets/{path}/comment")]
+#[post("/tweets/{path}/comment")]
 pub async fn add_comment(
     db: Data<TweetRepo<Tweet>>,
     path: Path<(String,)>,
@@ -94,7 +94,7 @@ pub async fn add_comment(
     }
 }
 
-#[delete("/api/v1/tweets/{tweet_id}/comment/{comment_id}")]
+#[delete("/tweets/{tweet_id}/comment/{comment_id}")]
 pub async fn delete_comment(
     db: Data<TweetRepo<Tweet>>,
     path: Path<(String, String)>,

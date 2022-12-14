@@ -13,6 +13,7 @@ pub struct Like {
 }
 
 impl Like {
+    /// Transforms <b>Like</b> to <b>LikeDto</b> using mapping.
     pub fn map(&self) -> LikeDto {
         LikeDto {
             id: self.id.unwrap().to_hex(),

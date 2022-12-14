@@ -8,6 +8,7 @@ pub struct MongoPool<T> {
 }
 
 impl<T> MongoPool<T> {
+    /// Connects the Database using MongoPool
     pub async fn connect() -> Self {
         dotenv().ok();
         let database_url = env::var("MONGODB_URL").expect("MONGODB_URL is required");
@@ -19,9 +20,11 @@ impl<T> MongoPool<T> {
         let database = client.database(&db_name);
 
         let collection_name = std::any::type_name::<T>();
-        println!("Collections: {:?}", collection_name);
         let collection: Collection<T> = database.collection(collection_name);
 
         MongoPool { collection }
     }
 }
+
+       
+

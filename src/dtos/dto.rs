@@ -35,6 +35,7 @@ pub struct UserDto {
 }
 
 impl TweetDto {
+    /// Transforms <b>TweetDto</b> to <b>Tweet</b> using mapping.
     pub fn to_tweet(self) -> Tweet {
         Tweet {
             id: Some(ObjectId::parse_str(&self.id).unwrap()),
@@ -48,6 +49,7 @@ impl TweetDto {
 }
 
 impl LikeDto {
+    /// Transforms <b>LikeDto</b> to <b>Like</b> using mapping.
     pub fn to_like(&self) -> Like {
         Like {
             id: Some(ObjectId::parse_str(&self.id).unwrap()),
@@ -58,6 +60,7 @@ impl LikeDto {
 }
 
 impl CommentDto {
+     /// Transforms <b>CommentDto</b> to <b>Comment</b> using mapping.
     pub fn to_comment(&self) -> Comment {
         Comment {
             id: Some(ObjectId::parse_str(&self.id).unwrap()),

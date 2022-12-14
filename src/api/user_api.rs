@@ -31,7 +31,7 @@ pub async fn login(db: Data<UserRepo<User>>, auth: Json<AuthData>) -> impl Respo
     }
 }
 
-#[post("/api/v1/user/logout")]
+#[post("/user/logout")]
 pub async fn signout(req: HttpRequest) -> impl Responder {
     let mut request = req.extensions_mut();
     request.clear();
