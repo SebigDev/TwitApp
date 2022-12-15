@@ -25,6 +25,3 @@ impl<T> MongoPool<T> {
         MongoPool { collection }
     }
 }
-
-       
-

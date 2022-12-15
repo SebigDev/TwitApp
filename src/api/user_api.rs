@@ -24,7 +24,7 @@ pub async fn register(db: Data<UserRepo<User>>, new_user: Json<CreateUser>) -> i
 #[post("/api/v1/user/login")]
 pub async fn login(db: Data<UserRepo<User>>, auth: Json<AuthData>) -> impl Responder {
     let user: AuthData = auth.into_inner();
-    let result = db.valid_user(user).await;
+    let result = db.valid_user(&user).await;
     match result {
         Ok(resp) => HttpResponse::Ok().json(resp),
         Err(err) => HttpResponse::Unauthorized().body(err.to_string()),

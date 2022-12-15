@@ -1,5 +1,3 @@
-
-use actix_web::{web::Data, App};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]

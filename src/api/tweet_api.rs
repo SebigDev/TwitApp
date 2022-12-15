@@ -85,7 +85,7 @@ pub async fn add_comment(
     request: Json<CommentRequest>,
 ) -> impl Responder {
     let tweet_id = path.0.as_str();
-    let comment = request.0.comment(tweet_id).unwrap();
+    let comment = request.into_inner().comment(tweet_id).unwrap();
     let result = db.add_comment(tweet_id, &comment.message).await;
 
     match result {

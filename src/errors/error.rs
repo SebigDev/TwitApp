@@ -10,7 +10,7 @@ pub enum TweetError {
     #[display(fmt = "BadRequest: {}", _0)]
     BadRequest(String),
 
-    #[display(fmt = "Unauthorized")]
+    #[display(fmt = "Unauthorized: {}", _0)]
     Unauthorized(String),
 }
 

@@ -28,28 +28,34 @@ impl UserRepo<User> {
         });
     }
 
-    pub async fn valid_user(&self, auth: AuthData) -> Result<String, TweetError> {
-        let filter = doc! {"email": auth.email};
+    pub async fn valid_user(&self, auth: &AuthData) -> Result<String, TweetError> {
+        let filter = doc! {"email": &auth.email};
         let user_result = self
             .collection
             .find(filter, None)
             .await
             .map_err(|_| TweetError::InternalServerError);
-            
+
         match user_result {
-            Ok(user) => {
-                let _user = match user.deserialize_current() {
-                    Ok(user) => user,
-                    Err(_) => {
-                        return Err(TweetError::Unauthorized("User data is not valid".into()))
-                    }
-                };
-                let token_option = _user.generate_token(&auth.password);
-                let token = match token_option {
-                    Some(_token) => _token,
-                    None => return Err(TweetError::Unauthorized("authentication failed".into())),
-                };
-                return Ok(token);
+            Ok(mut user) => {
+                while user.advance().await.unwrap() {
+                    let _user = match user.deserialize_current() {
+                        Ok(user) => user,
+                        Err(_) => {
+                            return Err(TweetError::Unauthorized("User data is not valid".into()))
+                        }
+                    };
+                    let token_option = _user.generate_token(&auth.password);
+                    let token = match token_option {
+                        Some(_token) => _token,
+                        None => { return Err(TweetError::Unauthorized("authentication failed, please check that email and password are correct".into()))
+                        }
+                    };
+                    return Ok(token);
+                }
+                return Err(TweetError::Unauthorized(
+                    format!("No user with {} found.", &auth.email).into(),
+                ));
             }
             Err(_) => return Err(TweetError::Unauthorized("User does not exist".into())),
         };
