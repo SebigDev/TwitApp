@@ -17,7 +17,7 @@ pub async fn register(db: Data<UserRepo<User>>, new_user: Json<CreateUser>) -> i
     let result = db.register(user).await;
     match result {
         Ok(resp) => HttpResponse::Ok().json(resp),
-        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+        Err(err) => HttpResponse::BadRequest().body(err.to_string()),
     }
 }
 

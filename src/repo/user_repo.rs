@@ -2,7 +2,7 @@ use crate::{
     auths::auth::AuthData, dtos::dto::UserDto, errors::error::TweetError, model::auth_model::User,
 };
 use bson::doc;
-use mongodb::Collection;
+use mongodb::{Collection, Cursor};
 
 pub struct UserRepo<User> {
     pub collection: Collection<User>,
@@ -10,6 +10,18 @@ pub struct UserRepo<User> {
 
 impl UserRepo<User> {
     pub async fn register(&self, user: User) -> Result<UserDto, TweetError> {
+        let user_result = self.get_user_by_email(&user.email).await;
+        match user_result {
+            Ok(mut resp) => {
+                while resp.advance().await.unwrap() {
+                    return Err(TweetError::BadRequest(format!(
+                        "User with {} already exists",
+                        user.email
+                    )));
+                }
+            }
+            Err(_) => return Err(TweetError::InternalServerError),
+        };
         let _user = self
             .collection
             .insert_one(user, None)
@@ -29,13 +41,7 @@ impl UserRepo<User> {
     }
 
     pub async fn valid_user(&self, auth: &AuthData) -> Result<String, TweetError> {
-        let filter = doc! {"email": &auth.email};
-        let user_result = self
-            .collection
-            .find(filter, None)
-            .await
-            .map_err(|_| TweetError::InternalServerError);
-
+        let user_result = self.get_user_by_email(&auth.email).await;
         match user_result {
             Ok(mut user) => {
                 while user.advance().await.unwrap() {
@@ -57,7 +63,18 @@ impl UserRepo<User> {
                     format!("No user with {} found.", &auth.email).into(),
                 ));
             }
-            Err(_) => return Err(TweetError::Unauthorized("User does not exist".into())),
+            Err(_) => return Err(TweetError::InternalServerError),
         };
+    }
+
+    /// Get user by email address
+    async fn get_user_by_email(&self, email: &str) -> Result<Cursor<User>, TweetError> {
+        let filter = doc! {"email": &email};
+        let user_result = self
+            .collection
+            .find(filter, None)
+            .await
+            .map_err(|_| TweetError::InternalServerError);
+        return user_result;
     }
 }

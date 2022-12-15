@@ -4,7 +4,7 @@ use derive_more::Display;
 
 #[derive(Debug, Display)]
 pub enum TweetError {
-    #[display(fmt = "Internal Server Error")]
+    #[display(fmt = "Internal Server Error, Please try later")]
     InternalServerError,
 
     #[display(fmt = "BadRequest: {}", _0)]

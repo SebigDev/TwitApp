@@ -19,7 +19,7 @@ impl<T> MongoPool<T> {
         let db_name = env::var("DATABASE_NAME").expect("Database name must be set");
         let database = client.database(&db_name);
 
-        let collection_name = std::any::type_name::<T>();
+        let collection_name = std::any::type_name::<T>().split("::").collect::<Vec<_>>()[3];
         let collection: Collection<T> = database.collection(collection_name);
 
         MongoPool { collection }
