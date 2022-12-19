@@ -78,7 +78,7 @@ impl User {
             };
 
             let token = Token::new(headers, claims).sign_with_key(&key).unwrap();
-            Some(String::from(token.as_str()))
+            Some(token.as_str().into())
         } else {
             None
         }
