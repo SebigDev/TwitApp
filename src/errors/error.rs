@@ -3,13 +3,17 @@ use actix_web::{error::ResponseError, HttpResponse};
 use derive_more::Display;
 
 #[derive(Debug, Display)]
+///Tweet errors 
 pub enum TweetError {
+    ///Internal server error due to network related issues
     #[display(fmt = "Internal Server Error, Please try later")]
     InternalServerError,
 
+    ///Bad Request due to invalid request
     #[display(fmt = "BadRequest: {}", _0)]
     BadRequest(String),
 
+    ///Authentication error when authentication fails or unauthorised
     #[display(fmt = "Unauthorized: {}", _0)]
     Unauthorized(String),
 }

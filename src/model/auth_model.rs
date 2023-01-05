@@ -26,29 +26,38 @@ impl User {
             password: Self::hash_password(password),
         }
     }
+
+    pub fn update_password(&mut self, new_password: &str) {
+        self.password = Self::hash_password(new_password);
+    }
     /// Hashes the password with Hasher
-    fn hash_password(password: &str) -> String {
+    pub fn hash_password(password: &str) -> String {
         let secret = std::env::var("SECRET_KEY").expect("SECRET_KEY not provided");
         let mut hasher = Hasher::default();
-        let hash = hasher
+        hasher
             .with_password(password)
             .with_secret_key(secret)
             .hash()
-            .unwrap();
-        hash
+            .unwrap()
+      
     }
 
-    /// Generates token string using the provided claims.
-    pub fn generate_token(&self, password: &str) -> Option<String> {
+    /// Verifies the password using the verifier algorithm
+    pub fn verify_password(&self, password: &str) -> bool {
         let secret = std::env::var("SECRET_KEY").expect("SECRET_KEY not provided");
-        let key = get_jwt_key();
         let mut verifier = Verifier::default();
-        let verify = verifier
+        verifier
             .with_hash(&self.password)
             .with_password(password)
             .with_secret_key(secret)
             .verify()
-            .unwrap();
+            .unwrap()
+    }
+
+    /// Generates token string using the provided claims.
+    pub fn generate_token(&self, password: &str) -> Option<String> {
+        let key = get_jwt_key();
+        let verify = self.verify_password(password);
         if verify {
             let headers = Header {
                 type_: Some(HeaderType::JsonWebToken),
@@ -78,7 +87,7 @@ impl User {
             };
 
             let token = Token::new(headers, claims).sign_with_key(&key).unwrap();
-            Some(String::from(token.as_str()))
+            Some(token.as_str().into())
         } else {
             None
         }

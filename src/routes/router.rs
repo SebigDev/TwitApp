@@ -7,7 +7,7 @@ use crate::{
         tweet_api::{
             add_comment, create_tweet, delete_comment, delete_tweet, get_tweet, list_tweets,
         },
-        user_api::{login, register, signout},
+        user_api::{change_password, login, register, signout},
     },
     auths::auth_middleware::validator,
 };
@@ -27,6 +27,7 @@ pub fn init(config: &mut web::ServiceConfig) {
             .service(minus_one)
             .service(add_comment)
             .service(delete_comment)
+            .service(change_password)
             .service(signout),
     );
 }

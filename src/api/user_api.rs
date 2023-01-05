@@ -1,11 +1,13 @@
 use actix_web::{
     post,
-    web::{Data, Json},
+    web::{Data, Json, ReqData},
     HttpMessage, HttpRequest, HttpResponse, Responder,
 };
+use jwt::RegisteredClaims;
 
+use crate::auths::utils::get_user_id;
 use crate::{
-    auths::auth::{AuthData, CreateUser},
+    auths::auth::{AuthData, ChangePasswordRequest, CreateUser},
     model::auth_model::User,
     repo::user_repo::UserRepo,
 };
@@ -31,9 +33,28 @@ pub async fn login(db: Data<UserRepo<User>>, auth: Json<AuthData>) -> impl Respo
     }
 }
 
+#[post("/user/change-password")]
+pub async fn change_password(
+    db: Data<UserRepo<User>>,
+    req: Json<ChangePasswordRequest>,
+    claims: Option<ReqData<RegisteredClaims>>,
+) -> impl Responder {
+    match get_user_id(claims) {
+        Ok(id) => id,
+        Err(err) => return HttpResponse::Unauthorized().body(err.to_string()),
+    };
+    let password_request: ChangePasswordRequest = req.into_inner();
+    let result = db.change_password(password_request).await;
+    match result {
+        Ok(resp) => HttpResponse::Ok().json(resp),
+        Err(err) => HttpResponse::BadRequest().body(err.to_string()),
+    }
+}
+
 #[post("/user/logout")]
 pub async fn signout(req: HttpRequest) -> impl Responder {
     let mut request = req.extensions_mut();
     request.clear();
-    HttpResponse::Ok().json({})
+    let message = Box::new("Logged out successfully");
+    HttpResponse::Ok().json(message)
 }
